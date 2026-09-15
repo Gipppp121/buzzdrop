@@ -52,7 +52,7 @@ def load(path: str | Path | None) -> Order:
     return Order(**data).validate()
 
 
-SAMPLE = '''# buzzdrop order card — every value here is display data you choose.
+SAMPLE = '''# buzzdrop order card. Every value here is display data you choose.
 [order]
 unit = "BZ-7"
 order_id = "#D-04817"

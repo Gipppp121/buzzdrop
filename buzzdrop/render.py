@@ -73,7 +73,7 @@ def render(src: str | Path, out: str | Path, order: Order, *, seed: int = 7,
            crf: int = 18, preset: str = "medium", telemetry_csv: str | Path | None = None) -> VideoInfo:
     ffmpeg = shutil.which("ffmpeg")
     if ffmpeg is None:
-        raise RuntimeError("ffmpeg not found on PATH — install it first (see README)")
+        raise RuntimeError("ffmpeg not found on PATH, install it first (see README)")
     info = probe(src)
 
     m = analyze(iter_frames(src), info.fps)
