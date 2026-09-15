@@ -1,0 +1,21 @@
+# buzzdrop order card — every value here is display data you choose.
+[order]
+unit = "BZ-7"
+order_id = "#D-04817"
+pickup = "CAFE / BLOCK A"
+dropoff = "ROOM 214 / FLOOR 2"
+parcel = "1x COFFEE  0.35 KG"
+picked_up_at = "14:02:18"
+en_route_start_s = 131
+route_length_m = 38.0
+remaining_m = 9.8
+fee = "2.40 EUR"
+today_orders = 23
+on_time = "96 %"
+battery_start = 87
+battery_drain_per_s = 0.35
+heading_start = 212
+speed_min = 0.18
+speed_max = 0.73
+arriving_last_s = 1.6
+stages = ["ACCEPTED", "PICKED UP", "EN ROUTE", "DELIVERED"]
