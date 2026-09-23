@@ -17,6 +17,8 @@ You are a drone the size of a cookie. It is 3 a.m. in a giant apartment. Pick up
 
 **Created by:** [@gippp69](https://x.com/gippp69)
 
+**Workflow:** ideas and prompts from Grok 4.7, code built with Claude
+
 ---
 
 ## Demo
