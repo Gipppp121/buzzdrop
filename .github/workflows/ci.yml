@@ -1,16 +1,19 @@
 name: ci
 on: [push, pull_request]
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python }}
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-dejavu-core
-      - run: pip install -e .
-      - run: python -m unittest discover -s tests -v
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: game.js parses
+        run: node --check src/game.js
+      - name: index.html matches src/
+        run: python tools/build.py --check
+      - name: tools compile
+        run: python -m py_compile tools/build.py tools/record.py

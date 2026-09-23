@@ -1,0 +1,135 @@
+<title>Night Drop</title>
+<style>
+/*FONTS*/
+:root{
+  color-scheme: dark;
+  --ink:#fff3e3; --ink-dim:rgba(255,243,227,.62); --ink-faint:rgba(255,243,227,.38);
+  --honey:#ffb627; --mint:#7ef0c5; --zap:#6fb8ff; --hot:#ff6a4d; --cat:#b8ff5c;
+  --glass:rgba(10,12,26,.55); --line:rgba(255,243,227,.16);
+  --display:'Syne','Trebuchet MS','DejaVu Sans',sans-serif;
+  --mono:'JetBrains Mono','DejaVu Sans Mono',ui-monospace,monospace;
+}
+html,body{height:100%;margin:0;background:#0b0d1a;overflow:hidden}
+#app{position:fixed;inset:0;background:#0b0d1a;color:var(--ink);font-family:var(--mono);user-select:none;-webkit-user-select:none}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;outline:none}
+.hud{position:absolute;pointer-events:none}
+.panel{background:var(--glass);border:1px solid var(--line);border-radius:10px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+
+#brand{left:22px;top:18px;display:flex;align-items:baseline;gap:10px}
+#brand b{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:.04em}
+#brand b i{font-style:normal;color:var(--honey)}
+#brand span{font-size:11px;letter-spacing:.18em;color:var(--ink-faint);text-transform:uppercase}
+
+#job{left:22px;top:58px;width:300px;padding:12px 14px 12px;display:grid;gap:8px}
+#job .row{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+#job .dot{width:10px;height:10px;border-radius:50%;margin-top:4px;box-shadow:0 0 10px currentColor}
+#job .k{font-size:10px;letter-spacing:.16em;color:var(--ink-faint);text-transform:uppercase}
+#job .v{font-size:13px;line-height:1.35;color:var(--ink)}
+#job .v em{font-style:normal;color:var(--ink-dim)}
+#job .row.off{opacity:.38}
+#timer{display:flex;align-items:center;gap:10px;margin-top:2px}
+#timer .bar{flex:1;height:4px;border-radius:2px;background:rgba(255,243,227,.12);overflow:hidden}
+#timer .bar i{display:block;height:100%;width:100%;background:var(--mint);border-radius:2px;transition:background .3s}
+#timer .t{font-size:13px;font-variant-numeric:tabular-nums;min-width:40px;text-align:right}
+
+#cash{right:22px;top:16px;text-align:right}
+#cash .m{font-family:var(--mono);font-weight:700;font-size:34px;letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:var(--honey);text-shadow:0 2px 18px rgba(255,182,39,.35)}
+#cash .s{font-size:11px;letter-spacing:.14em;color:var(--ink-dim);text-transform:uppercase;margin-top:2px}
+
+#district{left:0;right:0;top:25%;text-align:center;font-family:var(--display);font-weight:800;
+  font-size:clamp(26px,4.2vw,60px);letter-spacing:.32em;text-indent:.32em;color:var(--ink);
+  text-shadow:0 4px 30px rgba(40,10,40,.55);opacity:0;transition:opacity .6s ease,letter-spacing 1.2s ease}
+#district.on{opacity:.95;letter-spacing:.4em}
+#district small{display:block;font-family:var(--mono);font-weight:400;font-size:12px;letter-spacing:.3em;color:var(--ink-dim);margin-top:10px;text-indent:.3em}
+
+#map{left:22px;bottom:22px;width:190px;height:190px;border-radius:50%;border:1px solid var(--line);
+  box-shadow:0 0 0 6px rgba(10,12,26,.35),0 10px 40px rgba(0,0,0,.35);overflow:hidden}
+#map canvas{width:100%;height:100%;display:block}
+
+#gauge{right:24px;bottom:22px;text-align:right}
+#gauge .sp{font-weight:700;font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
+#gauge .u{font-size:11px;letter-spacing:.16em;color:var(--ink-dim);text-transform:uppercase}
+#gauge .alt{margin-top:8px;font-size:12px;color:var(--ink-dim);font-variant-numeric:tabular-nums}
+
+#pointer{left:0;top:0;width:0;height:0}
+#pointer .arr{position:absolute;left:-14px;top:-14px;width:28px;height:28px}
+#pointer .d{position:absolute;left:-40px;top:18px;width:80px;text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:var(--ink);text-shadow:0 1px 6px rgba(0,0,0,.6)}
+
+#pop{left:0;right:0;top:36%;text-align:center;font-weight:700;font-size:40px;opacity:0;transform:translateY(10px);transition:opacity .25s,transform .25s}
+#pop.on{opacity:1;transform:none}
+#pop small{display:block;font-size:13px;font-weight:400;letter-spacing:.16em;color:var(--ink-dim);margin-top:6px;text-transform:uppercase}
+#flash{inset:0;background:radial-gradient(circle at 50% 50%,rgba(255,106,77,0) 30%,rgba(255,106,77,.5));opacity:0;transition:opacity .35s}
+
+#help{left:50%;bottom:22px;transform:translateX(-50%);font-size:11px;letter-spacing:.12em;color:var(--ink-faint);text-transform:uppercase;white-space:nowrap}
+
+#intro{position:absolute;inset:0;display:grid;place-items:center;padding:24px;background:linear-gradient(180deg,rgba(11,13,26,.1),rgba(11,13,26,.7));transition:opacity .5s}
+#intro.gone{opacity:0;pointer-events:none}
+#app:has(#intro:not(.gone)) #district{display:none}
+#intro .card{max-width:520px;width:100%;padding:30px 30px 26px;display:grid;gap:18px}
+#intro h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(36px,5.6vw,60px);line-height:.92;letter-spacing:.01em}
+#intro h1 i{font-style:normal;color:var(--honey)}
+#intro p{margin:0;font-size:14px;line-height:1.55;color:var(--ink-dim);max-width:42ch}
+#intro .keys{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:12px;color:var(--ink-dim)}
+#intro kbd{font-family:var(--mono);font-size:11px;color:var(--ink);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:2px 6px;white-space:nowrap}
+#go{justify-self:start;font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.06em;color:#0b0d1a;background:var(--honey);border:0;border-radius:999px;padding:13px 26px;cursor:pointer;box-shadow:0 8px 30px rgba(255,182,39,.35)}
+#go:hover{filter:brightness(1.06)}
+#go:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+#best{font-size:11px;letter-spacing:.14em;color:var(--ink-faint);text-transform:uppercase}
+
+#catbox{margin-top:12px;display:grid;justify-items:end;gap:5px}
+#catpill{font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--glass);color:var(--ink-dim);transition:all .25s}
+#catpill.awake{color:#0b0d1a;background:var(--cat);border-color:var(--cat);box-shadow:0 0 22px rgba(184,255,92,.55)}
+#catbox .nb{width:120px;height:4px;border-radius:2px;background:rgba(255,243,227,.12);overflow:hidden}
+#noise{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--mint),var(--honey),var(--hot))}
+#catbox .nl{font-size:9px;letter-spacing:.2em;color:var(--ink-faint);text-transform:uppercase}
+#touch{position:absolute;inset:0;display:none}
+#touch .b{position:absolute;right:22px;width:58px;height:58px;border-radius:50%;border:1px solid var(--line);background:var(--glass);color:var(--ink);font-size:20px;display:grid;place-items:center}
+@media (pointer:coarse){ #touch{display:block} #help{display:none} #map{width:130px;height:130px} #job{width:230px} #gauge{bottom:170px} }
+@media (max-width:620px){ #job{top:52px;width:calc(100% - 44px)} #cash .m{font-size:26px} #cash{top:12px} #brand span{display:none} }
+@media (prefers-reduced-motion:reduce){ #district,#pop,#flash,#intro{transition:none} }
+</style>
+
+<div id="app">
+  <canvas id="gl" tabindex="0" aria-label="Night Drop apartment view"></canvas>
+
+  <div class="hud" id="brand"><b>NIGHT<i>DROP</i></b><span>micro courier · 3:12 am</span></div>
+
+  <div class="hud panel" id="job">
+    <div class="row" id="rowPick"><div class="dot" style="color:var(--honey);background:var(--honey)"></div>
+      <div><div class="k">Pick up</div><div class="v" id="pickTxt">—</div></div></div>
+    <div class="row" id="rowDrop"><div class="dot" style="color:var(--mint);background:var(--mint)"></div>
+      <div><div class="k">Deliver to</div><div class="v" id="dropTxt">—</div></div></div>
+    <div id="timer"><div class="bar"><i id="tbar"></i></div><div class="t" id="tval">0:30</div></div>
+  </div>
+
+  <div class="hud" id="cash"><div class="m" id="money">$0</div><div class="s" id="stats">0 delivered · streak 0</div><div id="catbox"><div id="catpill">cat · asleep</div><div class="nb"><i id="noise"></i></div><div class="nl">noise</div></div></div>
+  <div class="hud" id="district"><span id="dname"></span><small id="dsub"></small></div>
+  <div class="hud" id="map"><canvas id="mapc" width="380" height="380"></canvas></div>
+  <div class="hud" id="gauge"><div class="sp" id="spd">0</div><div class="u">cm / s</div><div class="alt" id="alt">alt 0 m</div></div>
+  <div class="hud" id="pointer"><svg class="arr" viewBox="0 0 28 28"><path d="M14 2 L25 24 L14 18 L3 24 Z" fill="currentColor"/></svg><div class="d" id="pdist"></div></div>
+  <div class="hud" id="pop"><span id="popv"></span><small id="pops"></small></div>
+  <div class="hud" id="flash"></div>
+  <div class="hud" id="help">W A S D fly · Space up · Shift down · mouse to look · stay quiet near the cat</div>
+
+  <div id="touch"><div class="b" id="tUp" style="bottom:96px">▲</div><div class="b" id="tDn" style="bottom:28px">▼</div></div>
+
+  <div id="intro">
+    <div class="panel card">
+      <h1>NIGHT<i>DROP</i></h1>
+      <p>It's 3 a.m. You are a drone the size of a cookie. Grab the parcel at the honey beam, drop it at the mint beam before the timer runs out. Hot burners push you around, the ceiling fan knocks you down, and the cat on the sofa is only pretending to sleep.</p>
+      <div class="keys">
+        <kbd>W A S D</kbd><span>fly and strafe</span>
+        <kbd>Space / Shift</kbd><span>climb / dive</span>
+        <kbd>Mouse</kbd><span>look (click the city to lock)</span>
+        <kbd>Touch</kbd><span>left side moves, right side looks</span>
+      </div>
+      <button id="go" type="button">Take off</button>
+      <div id="best"></div>
+    </div>
+  </div>
+</div>
+
+<!--THREE-->
+<script>
+/*GAME*/
+</script>

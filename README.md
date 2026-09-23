@@ -1,19 +1,19 @@
-# buzzdrop v0.1
+# buzzdrop v0.2 · Night Drop
 
-![buzzdrop](assets/banner.png)
+![Night Drop](assets/banner.png)
 
-![python](https://img.shields.io/badge/python-%E2%89%A53.11-9AA694?style=flat-square&labelColor=0A0D0B)
-![ffmpeg](https://img.shields.io/badge/ffmpeg-required-9AA694?style=flat-square&labelColor=0A0D0B)
-![unit](https://img.shields.io/badge/unit-BZ--7-FF8C00?style=flat-square&labelColor=0A0D0B)
-![robot control](https://img.shields.io/badge/robot%20control-none-FF6B5E?style=flat-square&labelColor=0A0D0B)
-![tests](https://img.shields.io/badge/tests-12%20passing-FF8C00?style=flat-square&labelColor=0A0D0B)
-![license](https://img.shields.io/badge/license-MIT-FF8C00?style=flat-square&labelColor=0A0D0B)
+![three.js](https://img.shields.io/badge/three.js-r128-FFB627?style=flat-square&labelColor=0A0D0B)
+![build](https://img.shields.io/badge/build-one%20html%20file-9AA694?style=flat-square&labelColor=0A0D0B)
+![engine](https://img.shields.io/badge/game%20engine-none-9AA694?style=flat-square&labelColor=0A0D0B)
+![cat](https://img.shields.io/badge/cat-asleep-B8FF5C?style=flat-square&labelColor=0A0D0B)
+![recording](https://img.shields.io/badge/recording-deterministic-7EF0C5?style=flat-square&labelColor=0A0D0B)
+![license](https://img.shields.io/badge/license-MIT-FFB627?style=flat-square&labelColor=0A0D0B)
 
-**Turn robot footage into a fly-courier delivery HUD.**
+**A 3D courier game in one HTML file.**
 
-buzzdrop takes a clip of a robot, measures how the picture moves, and draws three things on top: a neural activity panel, a delivery order card with a live countdown, and a REC strip.
+You are a drone the size of a cookie. It is 3 a.m. in a giant apartment. Pick up tiny parcels, drop them off before the timer runs out, and do not wake the cat.
 
-> **No brain. No sensors. No link to the robot.** buzzdrop reads video frames and writes video frames. Every number on screen comes from image motion or from your order file.
+**Play:** [gipppp121.github.io/buzzdrop](https://gipppp121.github.io/buzzdrop/) or just open `index.html` in a browser.
 
 **Created by:** [@gippp69](https://x.com/gippp69)
 
@@ -21,170 +21,133 @@ buzzdrop takes a clip of a robot, measures how the picture moves, and draws thre
 
 ## Demo
 
-![buzzdrop demo](assets/demo.gif)
+![Night Drop demo](assets/demo.gif)
 
-Unit BZ-7 on a real floor run. The neural panel and the speed, heading and ETA values follow the motion in the clip.
+Autopilot run: pick up an AA battery by the cereal box, fly across the room, deliver it right under the cat's nose. The cat wakes up, tracks the drone and swipes.
 
----
-
-## What it draws
-
-**Neural panel (left):**
-
-- fly-shaped nervous system: optic lobes, central brain, ventral nerve cord
-- flashes whose rate follows motion in the frame
-- spike raster and spike counter
-- L / R bars that swing with horizontal movement
-
-**Delivery card (right):**
-
-- order status: `ACCEPTED` → `PICKED UP` → `EN ROUTE` → `DELIVERED`
-- switches to `ARRIVING` near the end of the clip
-- pickup, dropoff, parcel, pickup time
-- time en route, metres remaining, speed, ETA, fee
-- route bar A → B, orders today, on-time rate, battery
-
-**REC strip (bottom):**
-
-- timecode, frame number, unit, order id, heading, speed
-
-Works on landscape and vertical 9:16 clips. The HUD scales with the shorter side of the video. Audio is kept.
+| Kitchen | Living room | The cat |
+|---|---|---|
+| ![kitchen](assets/shot-kitchen.jpg) | ![living room](assets/shot-living.jpg) | ![cat](assets/shot-cat.jpg) |
 
 ---
 
-## Quick start
+## How to play
 
-Install ffmpeg first:
+```text
+W A S D          fly and strafe
+Space / Shift    climb / dive
+Mouse            look (click the room to lock the pointer)
+Arrow keys       turn without a mouse
+Touch            left half moves, right half looks, ▲ ▼ buttons for height
+```
+
+1. Fly to the **honey beam** and touch it. The parcel hangs under the drone.
+2. Fly to the **mint beam**. The timer starts at pickup.
+3. Faster delivery means a bigger tip. Late delivery pays half and resets your streak.
+
+Your best shift is saved in the browser.
+
+---
+
+## The apartment
+
+```text
+THE KITCHEN     open fridge spilling light, stove, sink, kettle, cereal box
+FRIDGE LIGHT    door shelves and the fridge top
+DINING TABLE    plates, a water glass, a candle
+WINDOWSILL      moonlight and the city outside
+LIVING ROOM     sofa, coffee table, TV glow, floor lamp, ceiling fan
+BOOKSHELF       narrow gaps between shelves
+```
+
+15 pickup and drop spots. Every order is a random item to a random spot in another zone: an AA battery, one sugar cube, a lost earring, a single Lego brick, a cat treat (hide it).
+
+---
+
+## Hazards
+
+```text
+CAT             sleeps on the sofa. Fast flight nearby fills the NOISE bar.
+                Full bar or getting too close wakes it up.
+                Awake: eyes glow, head tracks the drone, paw swipe.  -$20
+HOT BURNERS     two burners are on. Hot air throws you upward.        -$10
+CEILING FAN     downdraft under the blades, blade hit knocks you out. -$15
+```
+
+The cat falls back asleep if you stay away for a few seconds. In a long shift it moves between the sofa, the table and the counter.
+
+---
+
+## How it is built
+
+```text
+src/shell.html      HUD, intro card, styles
+src/game.js         the whole game: room, cat, drone, physics, autopilot, HUD logic
+tools/build.py      inlines fonts and game.js into index.html
+tools/record.py     frame-by-frame recorder for gameplay videos
+index.html          build output, the playable file
+```
+
+Everything in the room is built from boxes, spheres, cylinders and canvas textures at load time. No models, no image files, no game engine. The only dependency is three.js from cdnjs.
+
+```text
+room          boxes and cylinders, AABB collision list
+lights        moon (shadows), fridge spot, candle, TV, lamp, under-cabinet strip
+cat           procedural body, tube tail rebuilt every frame, eye glow sprites
+drone         quad frame, spinning rotors, headlight cone, hanging parcel
+physics       velocity with drag, AABB push-out, room bounds
+autopilot     climb, cruise, low horizontal approach, land on target
+```
+
+---
+
+## Build
 
 ```bash
-winget install ffmpeg          # Windows
-brew install ffmpeg            # macOS
-sudo apt install ffmpeg        # Debian / Ubuntu
+python tools/build.py            # write index.html from src/
+python tools/build.py --check    # CI: fail if index.html is stale
 ```
 
-Then:
+Edit `src/`, run the build, commit both.
+
+---
+
+## Recording a video
+
+The game has a capture mode. With `?capture=1` nothing runs on its own clock. Each call to `window.__cap.step(n)` advances the world by `n` frames of 1/30 s and renders the last one, so a recording looks the same on a fast or slow machine.
 
 ```bash
-git clone https://github.com/Gipppp121/buzzdrop.git
-cd buzzdrop
-pip install -e .
-
-# check a clip before rendering
-buzzdrop probe robot.mp4
-
-# write an editable order card
-buzzdrop init order.toml
-
-# render
-buzzdrop render robot.mp4 --order order.toml -o delivery.mp4
-```
-
-`render` options:
-
-```text
--o, --output FILE        output path, default <input>_buzzdrop.mp4
---order FILE             order card TOML
---seed N                 different nervous system layout and spike pattern
---no-neural              hide the neural panel
---no-order               hide the delivery card
---no-strip               hide the REC strip
---telemetry FILE.csv     export per-frame motion and estimates
---crf N, --preset NAME   x264 quality and speed
-```
-
----
-
-## Order card
-
-Everything on the delivery card that is not measured comes from this file.
-
-```toml
-[order]
-unit = "BZ-7"
-order_id = "#D-04817"
-pickup = "CAFE / BLOCK A"
-dropoff = "ROOM 214 / FLOOR 2"
-parcel = "1x COFFEE  0.35 KG"
-route_length_m = 38.0
-remaining_m = 9.8       # metres left when the clip starts
-speed_min = 0.18        # m/s shown when the frame is still
-speed_max = 0.73        # m/s shown at peak motion
-arriving_last_s = 1.6   # EN ROUTE becomes ARRIVING this close to the end
-```
-
-Full list: [`examples/order.toml`](examples/order.toml). Unknown keys are rejected, so a typo fails loudly instead of doing nothing.
-
----
-
-## What is measured
-
-```text
-COMPUTED    neural flashes           optical flow drives spike rate per region
-ESTIMATED   speed, heading           image motion, scaled to speed_min / speed_max
-ESTIMATED   remaining, ETA           integrated from the speed estimate
-STYLISED    nervous system shape     hand-drawn procedural blobs, not a connectome
-DISPLAY     order, route, fee        values from order.toml
-NONE        robot control            buzzdrop never talks to the robot
-```
-
-Camera movement counts as motion. If the camera pans, speed and heading change even if the robot does not.
-
-If you post a render, label it as a concept or visualization.
-
----
-
-## How it works
-
-```text
-video
-  pass 1   Farneback optical flow at 160x90
-           left / right motion energy
-           signed horizontal flow   → turn
-           mean flow magnitude      → speed estimate
-
-  telemetry   heading, metres remaining, ETA, battery
-
-  nervous system
-           optic L/R  →(4 fr)→  central  →(5 fr)→  VNC L/R  →(4 fr)→  abdominal
-           spike chance = 0.004 + 0.05 × drive
-           brightness decays ×0.78 per frame
-
-  pass 2   draw panels with PIL and glow
-           pipe raw frames to ffmpeg, x264, original audio
+pip install playwright
+playwright install chromium
+python tools/record.py --seconds 27 -o gameplay.mp4 --workers 2
 ```
 
 ```text
-buzzdrop/
-  motion.py    optical flow, drive signals, telemetry
-  nervous.py   procedural point cloud and spike rule
-  hud.py       monochrome panels, designed at 720p and scaled
-  render.py    two-pass pipeline, ffmpeg writer, CSV export
-  order.py     order card dataclass and TOML loader
-  cli.py       render / probe / init
+--pr 0.75       3D render scale, HUD stays sharp
+--workers N     split the frames across N browser processes
+--clean         hide the HUD
 ```
+
+Needs ffmpeg on PATH. The demo above was recorded this way, software-rendered, about 2 s per frame per worker.
 
 ---
 
-## Tests
+## Versions
 
-```bash
-python -m unittest discover -s tests -v
-```
-
-Covers config validation, motion on synthetic clips, deterministic layouts, panel sizes and a full CLI render. The render test is skipped if ffmpeg is missing.
+- **v0.2** Night Drop, the game (this README)
+- **v0.1** robot footage to fly-courier HUD, a Python CLI. Still in the git history.
 
 ---
 
 ## Roadmap
 
-- [ ] `DELIVERED` freeze frame with a hold duration
-- [ ] track the robot itself instead of whole-frame motion
-- [ ] mini route map panel
-- [ ] colour themes
-- [ ] read real telemetry over serial / UDP once the robot has sensors
+- [ ] sound: rotor hum that rises with speed, cat purr and hiss
+- [ ] a second room: bathroom with a running tap
+- [ ] daily route with a fixed seed so everyone plays the same shift
+- [ ] gamepad support
 
 ---
 
 ## License
 
-MIT
+MIT. Fonts: Syne and JetBrains Mono, SIL Open Font License 1.1.
